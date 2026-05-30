@@ -1,0 +1,31 @@
+# Qt build directories
+build-*/
+debug/
+release/
+
+# Qt Creator user files
+*.pro.user
+*.pro.user.*
+*.user
+
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.a
+*.lib
+
+# Generated moc/uic/rcc files
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Backup/temp
+*.bak
+*.tmp
+*.log
