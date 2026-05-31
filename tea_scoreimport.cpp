@@ -8,7 +8,6 @@
 #include <QRegExp>
 #include <QStandardItem>
 #include <algorithm>
-#include <QVector>
 
 tea_scoreimport::tea_scoreimport(QWidget *parent) :
     QDialog(parent),
@@ -21,6 +20,7 @@ tea_scoreimport::tea_scoreimport(QWidget *parent) :
 
     reset();
 
+    // 读取成绩文件
     if (readfile() == -1)
     {
         this->close();
@@ -33,6 +33,7 @@ tea_scoreimport::~tea_scoreimport()
     delete ui;
 }
 
+// 初始化表格表头
 void tea_scoreimport::reset()
 {
     this->model->setHorizontalHeaderItem(0, new QStandardItem("学号"));
@@ -46,19 +47,14 @@ void tea_scoreimport::reset()
     this->ui->tableView->setColumnWidth(3, 80);
 }
 
+// 读取 score.txt 并保存到模板容器
 int tea_scoreimport::readfile()
 {
     score_line.clear();
-
     this->model->clear();
-
-    this->model->setHorizontalHeaderItem(0, new QStandardItem("学号"));
-    this->model->setHorizontalHeaderItem(1, new QStandardItem("姓名"));
-    this->model->setHorizontalHeaderItem(2, new QStandardItem("课程名称"));
-    this->model->setHorizontalHeaderItem(3, new QStandardItem("成绩"));
+    reset();
 
     QFile file("score.txt");
-
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         return -1;
@@ -72,21 +68,18 @@ int tea_scoreimport::readfile()
     while (!in.atEnd())
     {
         QString line = in.readLine().trimmed();
-
-        if (line.isEmpty())
-            continue;
-
-        if (line.startsWith("#"))
+        if (line.isEmpty() || line.startsWith("#"))
             continue;
 
         QStringList subs = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // score.txt 新格式：学号 姓名 课程名称 成绩
         if (subs.length() < 4)
             continue;
 
+        // 保存业务数据到模板容器
         score_line.append(line);
 
+        // 显示到表格
         this->model->setItem(row, 0, new QStandardItem(subs.at(0)));
         this->model->setItem(row, 1, new QStandardItem(subs.at(1)));
         this->model->setItem(row, 2, new QStandardItem(subs.at(2)));
@@ -99,6 +92,7 @@ int tea_scoreimport::readfile()
     return 0;
 }
 
+// 点击排序按钮，按选择列排序
 void tea_scoreimport::on_btn_dosort_clicked()
 {
     if (readfile() == -1)
@@ -109,37 +103,33 @@ void tea_scoreimport::on_btn_dosort_clicked()
 
     int flag = this->ui->cbb_sortway->currentIndex();
 
-    QVector<QStringList> records;
+    // 使用模板容器保存每行的字段列表
+    MyVector<QStringList> records;
 
-    for (int i = 0; i < score_line.length(); i++)
+    for (int i = 0; i < score_line.size(); i++)
     {
         QString line = score_line.at(i).trimmed();
-
         if (line.isEmpty() || line.startsWith("#"))
             continue;
 
         QStringList list = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // score.txt 格式：学号 姓名 课程名称 成绩
         if (list.size() < 4)
             continue;
 
         records.append(list);
     }
 
+    // 排序 lambda
     std::sort(records.begin(), records.end(),
               [flag](const QStringList &a, const QStringList &b)
     {
         switch (flag)
         {
         case 0:
-            // 按学号升序
-            return a.at(0) < b.at(0);
-
+            return a.at(0) < b.at(0); // 按学号升序
         case 1:
-            // 按课程名称升序
-            return a.at(2) < b.at(2);
-
+            return a.at(2) < b.at(2); // 按课程名称升序
         default:
             return a.at(0) < b.at(0);
         }
@@ -148,10 +138,10 @@ void tea_scoreimport::on_btn_dosort_clicked()
     this->model->clear();
     reset();
 
+    // 显示排序结果
     for (int row = 0; row < records.size(); row++)
     {
         QStringList list = records.at(row);
-
         this->model->setItem(row, 0, new QStandardItem(list.at(0))); // 学号
         this->model->setItem(row, 1, new QStandardItem(list.at(1))); // 姓名
         this->model->setItem(row, 2, new QStandardItem(list.at(2))); // 课程名称

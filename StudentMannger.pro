@@ -45,6 +45,8 @@ HEADERS += \
     addstu.h \
     addtea.h \
     addcourse.h \
+    mymap.h \
+    myvector.h \
     student.h \
     teacher.h \
     tea_scoreimport.h \

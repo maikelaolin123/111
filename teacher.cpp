@@ -3,15 +3,14 @@
 #include "tea_scoreimport.h"
 #include "tea_querystu.h"
 #include "mainwindow.h"
+#include "myvector.h"
+
 #include <QFile>
 #include <QTextStream>
-#include <QRegExp>
-#include <QStringList>
-#include <QDialog>
+#include <QMessageBox>
 #include <QVBoxLayout>
 #include <QTextEdit>
 #include <QPushButton>
-#include <QMessageBox>
 
 teacher::teacher(QWidget *parent) :
     QDialog(parent),
@@ -56,10 +55,11 @@ void teacher::on_btn_tea_querystu_clicked()
 void teacher::on_btn_return_clicked()
 {
     this->close();
-    MainWindow *main_window=new MainWindow;
+    MainWindow *main_window = new MainWindow;
     main_window->show();
 }
 
+// 显示教师基本信息及授课列表
 void teacher::showCurrentTeacherInfo()
 {
     QFile file("staff.txt");
@@ -72,6 +72,8 @@ void teacher::showCurrentTeacherInfo()
 
     QTextStream in(&file);
     in.setCodec("GBK");
+
+    courseList.clear();  // 使用模板容器保存授课课程
 
     while (!in.atEnd())
     {
@@ -91,31 +93,36 @@ void teacher::showCurrentTeacherInfo()
 
         if (id == currentTeacherId)
         {
-            QStringList courses;
-
+            // 将授课课程保存到模板容器
             for (int i = 2; i < list.size(); i++)
             {
-                courses << list.at(i);
+                if (!list.at(i).isEmpty())
+                    courseList.append(list.at(i));
             }
 
             QString info;
             info += "当前教师信息：\n";
             info += "工号：" + id + "\n";
             info += "姓名：" + name + "\n";
-            info += "授课：" + courses.join("、");
+            info += "授课：";
+
+            for (int i = 0; i < courseList.size(); ++i)
+            {
+                if (i > 0) info += "、";
+                info += courseList.at(i);
+            }
 
             ui->lb_info->setText(info);
-
             file.close();
             return;
         }
     }
 
     file.close();
-
     ui->lb_info->setText("未找到当前教师信息！");
 }
 
+// 查看教师收到的学生评价
 void teacher::on_btn_tea_evaluation_clicked()
 {
     if (currentTeacherId.isEmpty())
@@ -135,25 +142,26 @@ void teacher::on_btn_tea_evaluation_clicked()
     QTextStream in(&file);
     in.setCodec("UTF-8");
 
-    QString result;
-    int count = 0;
-    double sum = 0.0;
-    QString teacherNameShow;
+    // 使用模板容器存储评价信息
+    struct TeacherEvaluationInfo
+    {
+        QString courseName;
+        QString stuId;
+        QString stuName;
+        double score;
+        QString comment;
+    };
+    MyVector<TeacherEvaluationInfo> evaluationList;
 
-    result += "当前教师收到的学生评价：\n\n";
+    QString teacherNameShow;
+    double sum = 0.0;
 
     while (!in.atEnd())
     {
         QString line = in.readLine().trimmed();
-
-        if (line.isEmpty())
+        if (line.isEmpty() || line.startsWith("#"))
             continue;
 
-        if (line.startsWith("#"))
-            continue;
-
-        // evaluation.txt 格式：
-        // 学号    学生姓名    课程名称    教师工号    教师姓名    满意度评分    评语
         QStringList list = line.split("\t");
 
         if (list.size() < 7)
@@ -165,12 +173,10 @@ void teacher::on_btn_tea_evaluation_clicked()
         QString teacherId = list.at(3).trimmed();
         QString teacherName = list.at(4).trimmed();
         QString scoreText = list.at(5).trimmed();
-
         QString comment;
         for (int i = 6; i < list.size(); ++i)
         {
-            if (i > 6)
-                comment += " ";
+            if (i > 6) comment += " ";
             comment += list.at(i).trimmed();
         }
 
@@ -179,40 +185,49 @@ void teacher::on_btn_tea_evaluation_clicked()
 
         bool ok = false;
         double score = scoreText.toDouble(&ok);
+        if (!ok) continue;
 
-        if (!ok)
-            continue;
+        TeacherEvaluationInfo info;
+        info.courseName = courseName;
+        info.stuId = stuId;
+        info.stuName = stuName;
+        info.score = score;
+        info.comment = comment;
 
+        evaluationList.append(info);
+
+        sum += score;
         if (teacherNameShow.isEmpty())
             teacherNameShow = teacherName;
-
-        count++;
-        sum += score;
-
-        result += "课程：" + courseName + "\n";
-        result += "学生：" + stuName + "    学号：" + stuId + "\n";
-        result += "满意度评分：" + QString::number(score, 'g', 10) + "\n";
-        result += "评语：" + comment + "\n\n";
     }
 
     file.close();
 
-    if (count == 0)
+    if (evaluationList.isEmpty())
     {
         QMessageBox::information(this, "教师评价", "当前教师暂无学生评价。", "确认");
         return;
     }
 
-    double average = sum / count;
+    // 计算平均满意度
+    double average = sum / evaluationList.size();
 
-    QString header;
-    header += "教师工号：" + currentTeacherId + "\n";
-    header += "教师姓名：" + teacherNameShow + "\n";
-    header += "评价人数：" + QString::number(count) + "\n";
-    header += "平均满意度：" + QString::number(average, 'f', 2) + "\n\n";
+    QString result;
+    result += "教师工号：" + currentTeacherId + "\n";
+    result += "教师姓名：" + teacherNameShow + "\n";
+    result += "评价人数：" + QString::number(evaluationList.size()) + "\n";
+    result += "平均满意度：" + QString::number(average, 'f', 2) + "\n\n";
 
-    result = header + result;
+    // 拼接每条评价显示
+    for (int i = 0; i < evaluationList.size(); ++i)
+    {
+        result += "课程：" + evaluationList.at(i).courseName + "\n";
+        result += "学生：" + evaluationList.at(i).stuName + "    学号：" + evaluationList.at(i).stuId + "\n";
+        result += "满意度评分：" + QString::number(evaluationList.at(i).score, 'g', 10) + "\n";
+        result += "评语：" + evaluationList.at(i).comment + "\n\n";
+    }
 
+    // 创建显示窗口
     QDialog dialog(this);
     dialog.setWindowTitle("查看学生评价");
     dialog.resize(560, 600);

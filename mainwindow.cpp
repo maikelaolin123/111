@@ -3,9 +3,12 @@
 #include "system.h"
 #include "student.h"
 #include "teacher.h"
+
 #include "QFile"
 #include "QTextStream"
 #include "QMessageBox"
+#include <QRegExp>
+#include <QStringList>
 
 QString account;
 QString password;
@@ -22,53 +25,71 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+// 读取 student.txt，保存所有学生信息行
 int MainWindow::readstudentfile()
 {
+    student_line.clear();
+
     QFile file("student.txt");
-    if(!file.open(QIODevice::ReadOnly|QIODevice::Text))
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         return -1;
     }
+
     QTextStream in(&file);
+
     while (!in.atEnd())
     {
-       QString line=in.readLine();
-       student_line.append(line);
+        QString line = in.readLine();
+        student_line.append(line);
     }
+
     file.close();
     return 0;
 }
 
+// 读取 staff.txt，保存所有教师信息行
 int MainWindow::readteacherfile()
 {
+    teacher_line.clear();
+
     QFile file("staff.txt");
-    if(!file.open(QIODevice::ReadOnly|QIODevice::Text))
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         return -1;
     }
+
     QTextStream in(&file);
+
     while (!in.atEnd())
     {
-       QString line=in.readLine();
-       teacher_line.append(line);
+        QString line = in.readLine();
+        teacher_line.append(line);
     }
+
     file.close();
     return 0;
 }
 
+// 读取 controller.txt，保留接口，便于后续扩展管理员账号
 int MainWindow::readcontroller()
 {
+    controller_line.clear();
+
     QFile file("controller.txt");
-    if(!file.open(QIODevice::ReadOnly|QIODevice::Text))
+    if(!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         return -1;
     }
+
     QTextStream in(&file);
+
     while (!in.atEnd())
     {
-       QString line=in.readLine();
-       controller_line.append(line);
+        QString line = in.readLine();
+        controller_line.append(line);
     }
+
     file.close();
     return 0;
 }
@@ -78,14 +99,14 @@ void MainWindow::on_btn_denglu_clicked()
     account = this->ui->le_zhanghao->text().trimmed();
     password = this->ui->le_mima->text().trimmed();
 
-    // 1. 先判断空输入，避免 account.at(0) 越界
+    // 防止空输入导致后续判断异常
     if (account.length() < 1 || password.length() < 1)
     {
         QMessageBox::critical(this, "错误", "请输入账号和密码！", "确认");
         return;
     }
 
-    // 2. 管理员账号不依赖 student.txt / staff.txt，先判断
+    // 管理员账号固定，不依赖普通数据文件
     if (account == "controller" && password == "0000")
     {
         class system a;
@@ -94,19 +115,19 @@ void MainWindow::on_btn_denglu_clicked()
         return;
     }
 
-    // 3. 读取学生文件
     if (readstudentfile() == -1)
     {
-        QMessageBox::critical(this, "错误",
+        QMessageBox::critical(this,
+                              "错误",
                               "学生信息读取失败，学生账户无法登录！",
                               "确认");
         return;
     }
 
-    // 4. 读取教师文件
     if (readteacherfile() == -1)
     {
-        QMessageBox::critical(this, "错误",
+        QMessageBox::critical(this,
+                              "错误",
                               "教师信息读取失败，教师账户无法登录！",
                               "确认");
         return;
@@ -114,8 +135,8 @@ void MainWindow::on_btn_denglu_clicked()
 
     int flag = 100;
 
-    // 5. 学生登录：账号 = 学号，密码统一为 123456
-    for (int i = 0; i < student_line.length(); i++)
+    // 学生登录：账号为学号，密码统一为 123456
+    for (int i = 0; i < student_line.size(); i++)
     {
         QString line = student_line.at(i).trimmed();
 
@@ -137,10 +158,10 @@ void MainWindow::on_btn_denglu_clicked()
         }
     }
 
-    // 6. 教师登录：账号 = 工号，密码统一为 123456
+    // 教师登录：账号为工号，密码统一为 123456
     if (flag == 100)
     {
-        for (int j = 0; j < teacher_line.length(); j++)
+        for (int j = 0; j < teacher_line.size(); j++)
         {
             QString line = teacher_line.at(j).trimmed();
 
@@ -163,7 +184,7 @@ void MainWindow::on_btn_denglu_clicked()
         }
     }
 
-    // 7. 根据登录结果进入不同窗口
+    // 根据登录身份进入对应窗口
     switch (flag)
     {
     case 0:

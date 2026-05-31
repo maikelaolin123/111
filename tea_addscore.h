@@ -2,6 +2,7 @@
 #define TEA_ADDSCORE_H
 
 #include <QDialog>
+#include <QString>
 
 namespace Ui {
 class tea_addscore;
@@ -14,6 +15,7 @@ class tea_addscore : public QDialog
 public:
     explicit tea_addscore(QWidget *parent = nullptr);
     ~tea_addscore();
+
     void writeIn(QString information);
 
 private slots:

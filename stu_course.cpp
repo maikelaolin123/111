@@ -8,11 +8,11 @@
 #include <QRegExp>
 #include <QStandardItemModel>
 #include <QAbstractItemView>
+#include <QStringList>
 
 float sum = 0;
 
-
-// 原构造函数：保留，避免其他地方调用时报错
+// 默认构造函数：保留，避免其他窗口调用时报错
 stu_course::stu_course(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::stu_course)
@@ -25,8 +25,7 @@ stu_course::stu_course(QWidget *parent) :
     initWindow();
 }
 
-
-// 新构造函数：从 student 窗口传入当前登录学生学号
+// 带学生学号的构造函数：从学生窗口进入选课界面时使用
 stu_course::stu_course(QString id, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::stu_course)
@@ -39,14 +38,12 @@ stu_course::stu_course(QString id, QWidget *parent) :
     initWindow();
 }
 
-
 stu_course::~stu_course()
 {
     delete ui;
 }
 
-
-// 初始化窗口、表格、文件读取
+// 初始化窗口、表格模型和初始数据
 void stu_course::initWindow()
 {
     this->model1 = new QStandardItemModel(this);
@@ -80,12 +77,11 @@ void stu_course::initWindow()
 
     loadSelectedToTable();
 
-    // 打开选课窗口后，自动在上方列表显示全部可选课程
+    // 进入界面后显示所有可选课程
     showAllCourses();
 }
 
-
-// 根据学号从 student.txt 中查找学生姓名
+// 根据学号在 student.txt 中查找当前学生姓名
 QString stu_course::getStudentNameById(const QString &id)
 {
     QFile file("student.txt");
@@ -119,8 +115,7 @@ QString stu_course::getStudentNameById(const QString &id)
     return "";
 }
 
-
-// 可选课程表头：module.txt
+// 设置可选课程表头
 void stu_course::reset()
 {
     this->model1->setHorizontalHeaderItem(0, new QStandardItem("课程编号"));
@@ -136,8 +131,7 @@ void stu_course::reset()
     this->ui->tb_course->setColumnWidth(4, 80);
 }
 
-
-// 已选课程表头：selected.txt
+// 设置已选课程表头
 void stu_course::reset1()
 {
     this->model2->setHorizontalHeaderItem(0, new QStandardItem("课程编号"));
@@ -151,8 +145,7 @@ void stu_course::reset1()
     this->ui->tb_select->setColumnWidth(3, 80);
 }
 
-
-// 读取 module.txt
+// 读取 module.txt，并用 MyVector 保存课程行
 int stu_course::readcoursefile()
 {
     course_line.clear();
@@ -187,8 +180,7 @@ int stu_course::readcoursefile()
     return 0;
 }
 
-
-// 读取 selected.txt，只读取当前登录学生的选课记录
+// 读取 selected.txt，并只保留当前学生的选课记录
 int stu_course::readselectedfile()
 {
     sum = 0;
@@ -217,7 +209,6 @@ int stu_course::readselectedfile()
         if (list.size() < 6)
             continue;
 
-        // 当前学生为空时不筛选；正常从学生端进入时会筛选当前学生
         if (!currentStudentId.isEmpty() && list.at(0) != currentStudentId)
             continue;
 
@@ -229,35 +220,32 @@ int stu_course::readselectedfile()
     return 0;
 }
 
-
-// 显示可选课程：module.txt 的 5 列
+// 显示一行可选课程
 void stu_course::display(int row, QStringList course_line)
 {
     if (course_line.size() < 5)
         return;
 
-    this->model1->setItem(row, 0, new QStandardItem(course_line.at(0))); // 课程编号
-    this->model1->setItem(row, 1, new QStandardItem(course_line.at(1))); // 课程名称
-    this->model1->setItem(row, 2, new QStandardItem(course_line.at(2))); // 学分
-    this->model1->setItem(row, 3, new QStandardItem(course_line.at(3))); // 学时
-    this->model1->setItem(row, 4, new QStandardItem(course_line.at(4))); // 课程类别
+    this->model1->setItem(row, 0, new QStandardItem(course_line.at(0)));
+    this->model1->setItem(row, 1, new QStandardItem(course_line.at(1)));
+    this->model1->setItem(row, 2, new QStandardItem(course_line.at(2)));
+    this->model1->setItem(row, 3, new QStandardItem(course_line.at(3)));
+    this->model1->setItem(row, 4, new QStandardItem(course_line.at(4)));
 }
 
-
-// 显示已选课程：selected.txt 中抽取 课程编号、课程名称、学分、课程类别
+// 显示一行已选课程
 void stu_course::display1(int row, QStringList selected_line)
 {
     if (selected_line.size() < 6)
         return;
 
-    this->model2->setItem(row, 0, new QStandardItem(selected_line.at(2))); // 课程编号
-    this->model2->setItem(row, 1, new QStandardItem(selected_line.at(3))); // 课程名称
-    this->model2->setItem(row, 2, new QStandardItem(selected_line.at(4))); // 学分
-    this->model2->setItem(row, 3, new QStandardItem(selected_line.at(5))); // 课程类别
+    this->model2->setItem(row, 0, new QStandardItem(selected_line.at(2)));
+    this->model2->setItem(row, 1, new QStandardItem(selected_line.at(3)));
+    this->model2->setItem(row, 2, new QStandardItem(selected_line.at(4)));
+    this->model2->setItem(row, 3, new QStandardItem(selected_line.at(5)));
 }
 
-
-// 重新加载当前学生已选课程到右侧表格
+// 将当前学生已选课程加载到右侧表格
 void stu_course::loadSelectedToTable()
 {
     this->model2->clear();
@@ -265,7 +253,7 @@ void stu_course::loadSelectedToTable()
 
     int row = 0;
 
-    for (int i = 0; i < selected_line.length(); i++)
+    for (int i = 0; i < selected_line.size(); i++)
     {
         QString line = selected_line.at(i).trimmed();
 
@@ -283,7 +271,7 @@ void stu_course::loadSelectedToTable()
     this->ui->le_sum->setText(QString::number(sum, 'f', 1));
 }
 
-// 写入 selected.txt，插入到 #END 前
+// 写入 selected.txt，并保证新记录插入到 #END 前
 void stu_course::writeIn(QString info)
 {
     QFile file("selected.txt");
@@ -302,6 +290,7 @@ void stu_course::writeIn(QString info)
         file.close();
     }
 
+    // 文件为空时自动补充表头和结束标识
     if (lines.isEmpty())
     {
         lines << "#学号 姓名 课程编号 课程名称 学分 课程类别";
@@ -343,8 +332,7 @@ void stu_course::writeIn(QString info)
     file.close();
 }
 
-
-// 双击左侧课程表：选课
+// 双击左侧课程表进行选课
 void stu_course::on_tb_course_doubleClicked(const QModelIndex &index)
 {
     Q_UNUSED(index);
@@ -377,9 +365,10 @@ void stu_course::on_tb_course_doubleClicked(const QModelIndex &index)
         return;
     }
 
+    // 重新读取已选课程，确保重复判断和总学分是最新数据
     readselectedfile();
 
-    for (int i = 0; i < selected_line.length(); i++)
+    for (int i = 0; i < selected_line.size(); i++)
     {
         QString line = selected_line.at(i).trimmed();
 
@@ -432,8 +421,7 @@ void stu_course::on_tb_course_doubleClicked(const QModelIndex &index)
     }
 }
 
-
-// 双击右侧已选课程表：退课
+// 双击右侧已选课程表进行退课
 void stu_course::on_tb_select_doubleClicked(const QModelIndex &index)
 {
     Q_UNUSED(index);
@@ -482,6 +470,7 @@ void stu_course::on_tb_select_doubleClicked(const QModelIndex &index)
 
         QStringList list = trimmed.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
+        // 找到当前学生对应课程后跳过写回，实现退课
         if (list.size() >= 6 &&
             list.at(0) == currentStudentId &&
             list.at(2) == courseId)
@@ -524,6 +513,7 @@ void stu_course::on_tb_select_doubleClicked(const QModelIndex &index)
     loadSelectedToTable();
 }
 
+// 显示全部可选课程
 void stu_course::showAllCourses()
 {
     this->model1->clear();
@@ -537,7 +527,7 @@ void stu_course::showAllCourses()
 
     int row = 0;
 
-    for (int i = 0; i < course_line.length(); i++)
+    for (int i = 0; i < course_line.size(); i++)
     {
         QString line = course_line.at(i).trimmed();
 

@@ -2,6 +2,7 @@
 #define ADDCOURSE_H
 
 #include <QDialog>
+#include <QString>
 
 namespace Ui {
 class addcourse;
@@ -18,7 +19,6 @@ public:
 
 private slots:
     void on_btn_sys_addcou_clicked();
-
     void on_btn_sys_addcoucancel_clicked();
 
 private:

@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QString>
+#include "myvector.h"
 
 extern QString account;
 extern QString password;
@@ -28,9 +30,16 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QList<QString> student_line;
-    QList<QString> teacher_line;
-    QList<QString> controller_line;
+
+    // 保存 student.txt 文件行
+    MyVector<QString> student_line;
+
+    // 保存 staff.txt 文件行
+    MyVector<QString> teacher_line;
+
+    // 保存 controller.txt 文件行
+    MyVector<QString> controller_line;
+
     bool checkStudentLogin(const QString &account, const QString &password);
 };
 

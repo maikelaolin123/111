@@ -5,16 +5,16 @@
 #include "addcourse.h"
 #include "sysdel.h"
 #include "mainwindow.h"
+#include "myvector.h"
+
 #include <QFile>
 #include <QTextStream>
 #include <QStringList>
-#include <QMap>
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QTextEdit>
 #include <QPushButton>
 #include <QMessageBox>
-#include <algorithm>
 
 system::system(QWidget *parent) :
     QDialog(parent),
@@ -60,7 +60,7 @@ void system::on_btn_cancel_clicked()
 void system::on_btn_return_clicked()
 {
     this->close();
-    MainWindow *main_window=new MainWindow;
+    MainWindow *main_window = new MainWindow;
     main_window->show();
 }
 
@@ -77,9 +77,16 @@ void system::on_btn_teacher_evaluation_clicked()
     QTextStream in(&file);
     in.setCodec("UTF-8");
 
-    QMap<QString, double> scoreSumMap;      // 教师工号 -> 评分总和
-    QMap<QString, int> countMap;            // 教师工号 -> 评价人数
-    QMap<QString, QString> teacherNameMap;  // 教师工号 -> 教师姓名
+    struct TeacherEvaluationInfo
+    {
+        QString teacherId;
+        QString teacherName;
+        int count;
+        double totalScore;
+        double average;
+    };
+
+    MyVector<TeacherEvaluationInfo> infoList;
 
     while (!in.atEnd())
     {
@@ -108,49 +115,54 @@ void system::on_btn_teacher_evaluation_clicked()
         if (!ok)
             continue;
 
-        scoreSumMap[teacherId] += score;
-        countMap[teacherId] += 1;
-        teacherNameMap[teacherId] = teacherName;
+        bool found = false;
+
+        for (int i = 0; i < infoList.size(); ++i)
+        {
+            if (infoList[i].teacherId == teacherId)
+            {
+                infoList[i].totalScore += score;
+                infoList[i].count += 1;
+                infoList[i].average = infoList[i].totalScore / infoList[i].count;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            TeacherEvaluationInfo info;
+            info.teacherId = teacherId;
+            info.teacherName = teacherName;
+            info.count = 1;
+            info.totalScore = score;
+            info.average = score;
+
+            infoList.append(info);
+        }
     }
 
     file.close();
 
-    if (countMap.isEmpty())
+    if (infoList.size() == 0)
     {
         QMessageBox::information(this, "教师评价", "暂无有效评价记录。", "确认");
         return;
     }
 
-    struct TeacherEvaluationInfo
+    // 按平均满意度从高到低排序
+    for (int i = 0; i < infoList.size() - 1; ++i)
     {
-        QString teacherId;
-        QString teacherName;
-        int count;
-        double average;
-    };
-
-    QList<TeacherEvaluationInfo> infoList;
-
-    QMap<QString, int>::iterator it;
-    for (it = countMap.begin(); it != countMap.end(); ++it)
-    {
-        QString teacherId = it.key();
-        int count = it.value();
-        double average = scoreSumMap.value(teacherId) / count;
-
-        TeacherEvaluationInfo info;
-        info.teacherId = teacherId;
-        info.teacherName = teacherNameMap.value(teacherId);
-        info.count = count;
-        info.average = average;
-
-        infoList.append(info);
+        for (int j = 0; j < infoList.size() - 1 - i; ++j)
+        {
+            if (infoList[j].average < infoList[j + 1].average)
+            {
+                TeacherEvaluationInfo temp = infoList[j];
+                infoList[j] = infoList[j + 1];
+                infoList[j + 1] = temp;
+            }
+        }
     }
-
-    std::sort(infoList.begin(), infoList.end(),
-              [](const TeacherEvaluationInfo &a, const TeacherEvaluationInfo &b) {
-                  return a.average > b.average;
-              });
 
     QString result;
     result += "教师教学效果满意度排序：\n\n";

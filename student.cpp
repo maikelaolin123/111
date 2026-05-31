@@ -6,14 +6,13 @@
 #include "QMessageBox"
 #include "stu_course.h"
 #include "mainwindow.h"
+
 #include <QRegExp>
 #include <QDialog>
 #include <QTextEdit>
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QTextStream>
-#include <QMap>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QComboBox>
@@ -75,7 +74,6 @@ void student::showCurrentStudentInfo()
 
         QStringList list = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // student.txt 格式：学号 姓名 班级 专业
         if (list.size() < 4)
             continue;
 
@@ -167,8 +165,6 @@ int student::readCourseCreditFile()
 
         QStringList list = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // module.txt 格式：
-        // 课程编号 课程名称 学分 学时 课程类别
         if (list.size() < 3)
             continue;
 
@@ -214,7 +210,6 @@ int student::readTeacherFile()
 
         QStringList list = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // staff.txt 格式：工号 姓名 授课1 授课2 ...
         if (list.size() < 3)
             continue;
 
@@ -278,7 +273,6 @@ void student::on_btn_stu_query_clicked()
 
         QStringList linesplit = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // 新 score.txt 格式：学号 姓名 课程名称 成绩
         if (linesplit.size() < 4)
             continue;
 
@@ -337,6 +331,7 @@ void student::on_btn_stu_query_clicked()
 
     dialog.exec();
 }
+
 void student::on_btn_stu_select_clicked()
 {
     if (currentStudentId.isEmpty())
@@ -357,7 +352,7 @@ void student::on_pushButton_clicked()
 void student::on_btn_return_clicked()
 {
     this->close();
-    MainWindow *main_window=new MainWindow;
+    MainWindow *main_window = new MainWindow;
     main_window->show();
 }
 
@@ -385,7 +380,7 @@ void student::on_btn_stu_evaluate_clicked()
     }
 
     QString studentName;
-    QStringList courseList;
+    MyVector<QString> courseList;
 
     for (int i = 0; i < score_line.length(); ++i)
     {
@@ -396,7 +391,6 @@ void student::on_btn_stu_evaluate_clicked()
 
         QStringList list = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // score.txt 格式：学号 姓名 课程名称 成绩
         if (list.size() < 4)
             continue;
 
@@ -408,7 +402,17 @@ void student::on_btn_stu_evaluate_clicked()
         {
             studentName = name;
 
-            if (!courseList.contains(courseName))
+            bool exists = false;
+            for (int j = 0; j < courseList.size(); ++j)
+            {
+                if (courseList.at(j) == courseName)
+                {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists)
             {
                 courseList.append(courseName);
             }
@@ -432,7 +436,11 @@ void student::on_btn_stu_evaluate_clicked()
 
     QLabel *labelCourse = new QLabel("请选择要评价的课程：", &dialog);
     QComboBox *comboCourse = new QComboBox(&dialog);
-    comboCourse->addItems(courseList);
+
+    for (int i = 0; i < courseList.size(); ++i)
+    {
+        comboCourse->addItem(courseList.at(i));
+    }
 
     QLabel *labelTeacher = new QLabel(&dialog);
 
@@ -524,8 +532,6 @@ void student::on_btn_stu_evaluate_clicked()
             out << "#学号\t姓名\t课程名称\t教师工号\t教师姓名\t满意度评分\t评语\n";
         }
 
-        // evaluation.txt 格式：
-        // 学号 姓名 课程名称 教师工号 教师姓名 满意度评分 评语
         out << currentStudentId << "\t"
             << studentName << "\t"
             << courseName << "\t"

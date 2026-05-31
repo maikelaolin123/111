@@ -5,10 +5,11 @@
 #include "QTextStream"
 #include "QDebug"
 #include "changedata.h"
+
 #include <QRegExp>
 #include <QStandardItem>
+#include <QStringList>
 #include <cmath>
-#include <algorithm>
 
 QString id1;
 QString name1;
@@ -21,19 +22,16 @@ tea_querystu::tea_querystu(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    this->model=new QStandardItemModel;
-
+    this->model = new QStandardItemModel;
     this->ui->tableView->setModel(model);
+
     reset();
 
-//    int row=this->ui->tableView->currentIndex().row();
-//    model->removeRow(row);
-//    model->submit();
-
-    if(readfile()==-1)
+    // 初始化时读取成绩文件，供后续查询使用
+    if(readfile() == -1)
     {
         this->close();
-        QMessageBox::critical(this,"错误","文件读取失败，无法进行查找","确认");
+        QMessageBox::critical(this, "错误", "文件读取失败，无法进行查找", "确认");
     }
 }
 
@@ -42,6 +40,7 @@ tea_querystu::~tea_querystu()
     delete ui;
 }
 
+// 初始化成绩表格表头
 void tea_querystu::reset()
 {
     this->model->setHorizontalHeaderItem(0, new QStandardItem("学号"));
@@ -55,6 +54,7 @@ void tea_querystu::reset()
     this->ui->tableView->setColumnWidth(3, 80);
 }
 
+// 读取 score.txt，将有效成绩行保存到自定义模板容器中
 int tea_querystu::readfile()
 {
     score_line.clear();
@@ -81,7 +81,7 @@ int tea_querystu::readfile()
 
         QStringList subs = line.split(QRegExp("\\s+"), QString::SkipEmptyParts);
 
-        // score.txt 新格式：学号 姓名 课程名称 成绩
+        // score.txt 格式：学号 姓名 课程名称 成绩
         if (subs.length() < 4)
             continue;
 
@@ -92,6 +92,7 @@ int tea_querystu::readfile()
     return 0;
 }
 
+// 读取 student.txt，建立“学号 -> 班级”的映射关系
 int tea_querystu::readStudentFile()
 {
     studentClassMap.clear();
@@ -132,6 +133,7 @@ int tea_querystu::readStudentFile()
     return 0;
 }
 
+// 将一条成绩记录显示到表格中
 void tea_querystu::display(int row, QStringList score_line)
 {
     if (score_line.size() < 4)
@@ -143,7 +145,8 @@ void tea_querystu::display(int row, QStringList score_line)
     this->model->setItem(row, 3, new QStandardItem(score_line.at(3))); // 成绩
 }
 
-static void sortScoreListDesc(QStringList &resultList)
+// 对查询结果按成绩从高到低排序
+static void sortScoreListDesc(MyVector<QString> &resultList)
 {
     for (int i = 0; i < resultList.size() - 1; ++i)
     {
@@ -158,20 +161,23 @@ static void sortScoreListDesc(QStringList &resultList)
             bool ok1 = false;
             bool ok2 = false;
 
-            double score1 = list1.at(3).toDouble(&ok1);
-            double score2 = list2.at(3).toDouble(&ok2);
+            double value1 = list1.at(3).toDouble(&ok1);
+            double value2 = list2.at(3).toDouble(&ok2);
 
             if (!ok1 || !ok2)
                 continue;
 
-            if (score1 < score2)
+            if (value1 < value2)
             {
-                resultList.swapItemsAt(j, j + 1);
+                QString temp = resultList[j];
+                resultList[j] = resultList[j + 1];
+                resultList[j + 1] = temp;
             }
         }
     }
 }
 
+// 执行成绩查询，支持姓名、学号、课程、班级和分数段查询
 void tea_querystu::on_btn_doquery_clicked()
 {
     this->model->clear();
@@ -197,11 +203,10 @@ void tea_querystu::on_btn_doquery_clicked()
         return;
     }
 
-    QStringList resultList;
+    // 查询结果使用自定义模板容器保存
+    MyVector<QString> resultList;
 
-    // 新增：按班级查询
-    // 输入格式：班级 课程名称
-    // 示例：123091 高等数学
+    // 按班级查询，输入格式：班级 课程名称
     if (mode.contains("班级"))
     {
         QStringList queryList = key.split(QRegExp("\\s+"), QString::SkipEmptyParts);
@@ -218,7 +223,7 @@ void tea_querystu::on_btn_doquery_clicked()
         QString queryClassName = queryList.at(0).trimmed();
         QString queryCourseName = queryList.at(1).trimmed();
 
-        for (int i = 0; i < score_line.length(); i++)
+        for (int i = 0; i < score_line.size(); i++)
         {
             QString line = score_line.at(i).trimmed();
 
@@ -242,9 +247,7 @@ void tea_querystu::on_btn_doquery_clicked()
             }
         }
     }
-    // 课程成绩分数段查询
-    // 输入格式：课程名称 最低分 最高分
-    // 示例：高等数学 60 80
+    // 课程成绩分数段查询，输入格式：课程名称 最低分 最高分
     else if (mode.contains("分数段") || mode.contains("成绩段"))
     {
         QStringList queryList = key.split(QRegExp("\\s+"), QString::SkipEmptyParts);
@@ -284,7 +287,7 @@ void tea_querystu::on_btn_doquery_clicked()
             return;
         }
 
-        for (int i = 0; i < score_line.length(); i++)
+        for (int i = 0; i < score_line.size(); i++)
         {
             QString line = score_line.at(i).trimmed();
 
@@ -315,8 +318,8 @@ void tea_querystu::on_btn_doquery_clicked()
     }
     else
     {
-        // 原有查询功能：姓名、学号、课程名称、成绩
-        for (int i = 0; i < score_line.length(); i++)
+        // 普通查询：姓名、学号、课程名称或综合匹配
+        for (int i = 0; i < score_line.size(); i++)
         {
             QString line = score_line.at(i).trimmed();
 
@@ -376,6 +379,7 @@ void tea_querystu::on_btn_doquery_clicked()
     }
 }
 
+// 双击成绩行，进入成绩修改窗口
 void tea_querystu::on_tableView_doubleClicked(const QModelIndex &index)
 {
     Q_UNUSED(index);
@@ -384,6 +388,7 @@ void tea_querystu::on_tableView_doubleClicked(const QModelIndex &index)
 
     if (row < 0)
         return;
+
     QString scoreText = model->data(model->index(row, 3)).toString().trimmed();
     bool okScore = false;
     scoreText.toDouble(&okScore);
@@ -394,11 +399,7 @@ void tea_querystu::on_tableView_doubleClicked(const QModelIndex &index)
         return;
     }
 
-    // 当前表格格式：
-    // 0 学号
-    // 1 姓名
-    // 2 课程名称
-    // 3 成绩
+    // 保存当前行信息，供 changedata 窗口使用
     id1 = model->data(model->index(row, 0)).toString();
     name1 = model->data(model->index(row, 1)).toString();
     courseName1 = model->data(model->index(row, 2)).toString();
@@ -407,14 +408,13 @@ void tea_querystu::on_tableView_doubleClicked(const QModelIndex &index)
     changedata a;
     a.exec();
 
-    // 修改完成后重新读取文件
+    // 修改完成后重新读取文件并清空表格
     readfile();
-
-    // 清空表格并恢复表头
     this->model->clear();
     reset();
 }
 
+// 对当前表格中的成绩结果进行统计分析
 void tea_querystu::on_btn_statistics_clicked()
 {
     int rowCount = model->rowCount();
@@ -427,8 +427,10 @@ void tea_querystu::on_btn_statistics_clicked()
 
     int count = 0;
     int passCount = 0;
-    double sum = 0.0;
-    QList<double> scoreValues;
+    double sumScore = 0.0;
+
+    // 使用自定义模板容器保存有效成绩，便于计算标准差
+    MyVector<double> scoreValues;
 
     QString firstCourseName = "";
     QString firstClassName = "";
@@ -451,7 +453,7 @@ void tea_querystu::on_btn_statistics_clicked()
         bool ok = false;
         double score = scoreText.toDouble(&ok);
 
-        // 避免重复点击统计分析时，把前面的统计行也算进去
+        // 已插入的统计行不是成绩数据，需要跳过
         if (!ok)
             continue;
 
@@ -464,7 +466,7 @@ void tea_querystu::on_btn_statistics_clicked()
             firstClassName = className;
 
         scoreValues.append(score);
-        sum += score;
+        sumScore += score;
         count++;
 
         if (score >= 60)
@@ -479,9 +481,11 @@ void tea_querystu::on_btn_statistics_clicked()
         return;
     }
 
-    double average = sum / count;
+    double average = sumScore / count;
 
+    // 计算标准差
     double varianceSum = 0.0;
+
     for (int i = 0; i < scoreValues.size(); ++i)
     {
         varianceSum += (scoreValues.at(i) - average) * (scoreValues.at(i) - average);
@@ -517,7 +521,7 @@ void tea_querystu::on_btn_statistics_clicked()
         statisticObject = "当前查询结果，课程：" + firstCourseName;
     }
 
-    // 统计结果插入到表格最前面
+    // 将统计结果插入到表格最前面
     model->insertRow(0);
     model->setItem(0, 0, new QStandardItem("统计对象"));
     model->setItem(0, 1, new QStandardItem(statisticObject));

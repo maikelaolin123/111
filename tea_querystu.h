@@ -4,8 +4,8 @@
 #include <QDialog>
 #include <QStandardItem>
 #include <QStandardItemModel>
-#include <QMap>
-#include <QStringList>
+#include "myvector.h"
+#include "mymap.h"
 
 extern QString id1;
 extern QString name1;
@@ -33,18 +33,18 @@ public:
 
 private slots:
     void on_btn_doquery_clicked();
-
     void on_btn_statistics_clicked();
-
     void on_tableView_doubleClicked(const QModelIndex &index);
 
 public:
     Ui::tea_querystu *ui;
     QStandardItemModel *model;
-    QList<QString> score_line;
 
-    // 学号 -> 班级
-    QMap<QString, QString> studentClassMap;
+    // 用模板类容器替代 QList<QString>，保存成绩记录行
+    MyVector<QString> score_line;
+
+    // 用模板类容器替代 QMap，保存学号 -> 班级
+    MyMap<QString, QString> studentClassMap;
 };
 
 #endif // TEA_QUERYSTU_H

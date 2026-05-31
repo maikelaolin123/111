@@ -2,6 +2,7 @@
 #define ADDSTU_H
 
 #include <QDialog>
+#include <QString>
 
 namespace Ui {
 class addstu;

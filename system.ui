@@ -82,14 +82,14 @@
      <x>180</x>
      <y>100</y>
      <width>82</width>
-     <height>91</height>
+     <height>101</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <widget class="QPushButton" name="btn_del">
       <property name="text">
-       <string>执行删除</string>
+       <string>成员删除</string>
       </property>
      </widget>
     </item>
@@ -121,7 +121,7 @@
      <x>180</x>
      <y>200</y>
      <width>80</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">

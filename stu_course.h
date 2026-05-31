@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QStandardItem>
 #include <QStandardItemModel>
+#include "myvector.h"  // 自定义模板容器
 
 extern float sum;
 
@@ -29,17 +30,20 @@ public:
 
 private slots:
     void on_tb_course_doubleClicked(const QModelIndex &index);
-
     void on_tb_select_doubleClicked(const QModelIndex &index);
-
     void showAllCourses();
 
 private:
     Ui::stu_course *ui;
     QStandardItemModel *model1;
     QStandardItemModel *model2;
-    QList<QString> course_line;
-    QList<QString> selected_line;
+
+    // 保存 module.txt 所有课程行
+    MyVector<QString> course_line;
+
+    // 保存 selected.txt 当前学生已选课程行
+    MyVector<QString> selected_line;
+
     QString currentStudentId;
     QString currentStudentName;
 

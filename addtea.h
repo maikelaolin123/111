@@ -2,6 +2,7 @@
 #define ADDTEA_H
 
 #include <QDialog>
+#include <QString>
 
 namespace Ui {
 class addtea;

@@ -2,9 +2,10 @@
 #define STUDENT_H
 
 #include <QDialog>
-#include <QList>
 #include <QString>
-#include <QMap>
+
+#include "myvector.h"
+#include "mymap.h"
 
 namespace Ui {
 class student;
@@ -16,11 +17,12 @@ class student : public QDialog
 
 public:
     explicit student(QWidget *parent = nullptr);
-    // 新增：带当前登录学生学号的构造函数
     explicit student(QString id, QWidget *parent = nullptr);
+
     int readfile();
     int readCourseCreditFile();
     int readTeacherFile();
+
     ~student();
 
 private slots:
@@ -37,16 +39,15 @@ private slots:
 private:
     Ui::student *ui;
 
-    // 原来的成绩文件行缓存
-    QList<QString> score_line;
-    // 新增：保存当前登录学生的学号
+    MyVector<QString> score_line;
+
     QString currentStudentId;
-    // 课程名称 -> 学分
-    QMap<QString, double> courseCreditMap;
-    // 课程名称 -> 教师工号
-    QMap<QString, QString> courseTeacherIdMap;
-    // 课程名称 -> 教师姓名
-    QMap<QString, QString> courseTeacherNameMap;
+
+    MyMap<QString, double> courseCreditMap;
+
+    MyMap<QString, QString> courseTeacherIdMap;
+
+    MyMap<QString, QString> courseTeacherNameMap;
 
     void showCurrentStudentInfo();
 };
