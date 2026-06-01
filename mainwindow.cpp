@@ -107,7 +107,7 @@ void MainWindow::on_btn_denglu_clicked()
     }
 
     // 管理员账号固定，不依赖普通数据文件
-    if (account == "controller" && password == "0000")
+    if (account == "controller" && password == "1234")
     {
         class system a;
         this->close();

@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>学生选课和成绩管理系统</string>
+   <string>学生选课和课程管理系统</string>
   </property>
   <widget class="QLabel" name="label">
    <property name="geometry">
@@ -39,7 +39,7 @@
   <widget class="QPushButton" name="btn_addscore_add">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>40</x>
      <y>350</y>
      <width>75</width>
      <height>23</height>
@@ -52,7 +52,7 @@
   <widget class="QPushButton" name="btn_addscore_cancel">
    <property name="geometry">
     <rect>
-     <x>160</x>
+     <x>170</x>
      <y>350</y>
      <width>75</width>
      <height>23</height>

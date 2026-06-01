@@ -1,7 +1,6 @@
 #include "addstu.h"
 #include "ui_addstu.h"
 #include "myvector.h"
-
 #include "QString"
 #include "QDebug"
 #include "QMessageBox"

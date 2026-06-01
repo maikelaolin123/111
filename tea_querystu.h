@@ -40,10 +40,10 @@ public:
     Ui::tea_querystu *ui;
     QStandardItemModel *model;
 
-    // 用模板类容器替代 QList<QString>，保存成绩记录行
+    // 用模板类容器保存成绩记录行
     MyVector<QString> score_line;
 
-    // 用模板类容器替代 QMap，保存学号 -> 班级
+    // 用模板类容器保存学号 -> 班级
     MyMap<QString, QString> studentClassMap;
 };
 

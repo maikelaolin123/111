@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>学生选课与成绩管理系统</string>
+   <string>学生选课与课程管理系统</string>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -32,7 +32,7 @@
      </font>
     </property>
     <property name="text">
-     <string>学生成绩与选课管理系统</string>
+     <string>学生选课和课程管理系统</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>

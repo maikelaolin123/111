@@ -11,15 +11,15 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>学生选课和成绩管理系统</string>
+   <string>学生选课和课程管理系统</string>
   </property>
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>330</x>
-     <y>40</y>
-     <width>101</width>
-     <height>31</height>
+     <x>120</x>
+     <y>20</y>
+     <width>511</width>
+     <height>51</height>
     </rect>
    </property>
    <property name="font">
@@ -29,6 +29,9 @@
    </property>
    <property name="text">
     <string>成绩总览</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
    </property>
   </widget>
   <widget class="QTableView" name="tableView">

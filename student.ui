@@ -11,15 +11,15 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>学生选课和成绩管理系统</string>
+   <string>学生选课和课程管理系统</string>
   </property>
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>390</x>
+     <x>420</x>
      <y>390</y>
      <width>75</width>
-     <height>21</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -35,10 +35,10 @@
   <widget class="QPushButton" name="btn_return">
    <property name="geometry">
     <rect>
-     <x>390</x>
-     <y>360</y>
+     <x>420</x>
+     <y>350</y>
      <width>75</width>
-     <height>23</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">

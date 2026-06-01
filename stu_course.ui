@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>学生选课和成绩管理系统</string>
+   <string>学生选课和课程管理系统</string>
   </property>
   <widget class="QLabel" name="label">
    <property name="geometry">

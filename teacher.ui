@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>学生选课和成绩管理系统</string>
+   <string>学生选课和课程管理系统</string>
   </property>
   <widget class="QPushButton" name="btn_return">
    <property name="geometry">
@@ -97,7 +97,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>查询学生</string>
+    <string>学生成绩</string>
    </property>
   </widget>
  </widget>
